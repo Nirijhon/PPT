@@ -1,0 +1,39 @@
+<!-- components/verse-slide.html -->
+<div class="relative w-full max-w-[1280px] aspect-video bg-[#0B192C] border-[6px] border-[#FFD700]/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col justify-between p-12 md:p-16 font-sans">
+
+    <!-- Background Visual Layering: Radial Center Glow & Double Frame -->
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/50 via-[#0B192C] to-[#050C16] pointer-events-none"></div>
+    <div class="absolute inset-4 border border-[#FFD700]/20 rounded-xl pointer-events-none"></div>
+
+    <!-- Top Tagline (Keeps the slide top balanced) -->
+    <div class="relative z-10 flex justify-center">
+        <span class="bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] text-xs md:text-sm font-bold tracking-[0.3em] uppercase px-6 py-1.5 rounded-full">
+            Scripture Reading
+        </span>
+    </div>
+
+    <!-- Main Central Block: Scripture Reference + Message Grouped Together -->
+    <div class="relative z-10 text-center my-auto px-6 max-w-[92%] mx-auto flex flex-col items-center gap-6">
+
+        <!-- Scripture Reference (Sitting right above the message) -->
+        <div class="bg-[#132A4A] border-l-4 border-[#FFD700] px-8 py-2 rounded-r-lg shadow-lg">
+            <h3 class="text-[#FFD700] text-xl md:text-3xl font-black tracking-[0.2em] uppercase">
+                JOHN 3:16
+            </h3>
+        </div>
+
+        <!-- Main Message / Verse Text -->
+        <p class="text-white text-3xl md:text-5xl font-bold leading-relaxed drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] [text-wrap:balance]">
+            "For God so loved the world that He gave His only begotten Son, that whoever believes in Him should not perish but have everlasting life."
+        </p>
+
+    </div>
+
+    <!-- Bottom Metadata Tag (Bible Translation) -->
+    <div class="relative z-10 flex justify-center">
+        <span class="text-[#FFD700]/70 text-sm md:text-base font-bold tracking-widest uppercase">
+            NKJV BIBLE
+        </span>
+    </div>
+
+</div>

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>SlideCraft Studio</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%230B192C%22/><rect x=%228%22 y=%228%22 width=%2284%22 height=%2284%22 fill=%22%23050C16%22/><circle cx=%2250%22 cy=%2250%22 r=%2226%22 fill=%22%23FFD700%22/></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+    @layer utilities {
+      .slide-flash { animation: slideFlash 0.9s ease-out; }
+      @keyframes slideFlash { 0% { background-color: rgba(255,215,0,0); } 40% { background-color: rgba(255,215,0,0.16); } 100% { background-color: rgba(255,215,0,0); } }
+      .cq-container { container-type: inline-size; }
+      /* Template picker: real per-template selection state */
+      .sel-badge { display: none; }
+      [data-selected="true"] .sel-badge { display: inline-flex; }
+      .template-card { box-shadow: 0 4px 14px rgba(0,0,0,.3); transition: box-shadow .18s ease, transform .18s ease; }
+      .template-card:hover { box-shadow: 0 0 0 2px rgba(255,255,255,.55), 0 6px 18px rgba(0,0,0,.32); }
+      .template-card[data-selected="true"] { box-shadow: 0 0 0 3px #fbbf24, 0 6px 18px rgba(0,0,0,.36); }
+      .toast-item { animation: toastIn 0.3s ease, toastOut 0.3s 4.7s; }
+      @keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+      @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-gray-200 font-sans overflow-y-auto">
+
+  <!-- Header -->
+  <header class="bg-[#0B192C] border-b border-amber-500/30 shadow-lg sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center"><i class="fa-solid fa-paintbrush text-[#0B192C] text-sm"></i></div>
+        <h1 class="text-xl font-bold text-white">SlideCraft Studio</h1>
+        <span class="text-xs text-gray-500 hidden sm:inline">Presentation Builder</span>
+        <span class="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/40 rounded-full px-2 py-0.5">v1.4</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span id="current-step-label" class="text-sm text-gray-400">Dashboard</span>
+        <button onclick="app.exportPDF()" id="download-btn" class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-[#0B192C] font-black hover:bg-amber-400 transition shadow-lg">
+          <i class="fa-solid fa-download"></i> Download PDF
+        </button>
+        <button onclick="window.location.reload()" class="text-gray-400 hover:text-white transition"><i class="fa-solid fa-rotate-right"></i></button>
+      </div>
+        </div>
+  </header>
+
+  <!-- DASHBOARD -->
+  <section id="view-step-1" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 hidden">
+    <div class="flex flex-col items-center text-center">
+      <div class="mb-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30">
+        <span class="w-2 h-2 rounded-full bg-amber-400 ring-2 ring-amber-500/40"></span>
+        <span class="text-xs font-medium text-amber-400">Sermon Presentation Builder</span>
+      </div>
+      <h2 class="text-5xl font-black text-white mb-4">SlideCraft Studio</h2>
+      <p class="text-gray-400 max-w-lg mb-10">Build a branded sermon presentation. Choose a template, add slides, preview them live, then download a print-ready PDF.</p>
+      <div class="flex justify-center">
+        <button onclick="app.goToStep(2)" class="px-10 py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-[#0B192C] font-black text-xl hover:brightness-110 transition shadow-2xl shadow-amber-500/35">Start Building</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEMPLATES -->
+  <section id="view-step-2" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 hidden">
+    <div class="mb-8"><h2 class="text-2xl font-bold text-white">Choose a Template</h2></div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div data-template="Sermon Classic" data-selected="true" onclick="app.selectTemplate('Sermon Classic')" class="template-card relative rounded-2xl p-4 text-center cursor-pointer hover:scale-[1.015]" style="border:2px solid #FFD700;background:linear-gradient(180deg,#0B192C,#050C16);">
+        <span class="sel-badge absolute top-2 right-2 bg-amber-400 text-[#0B192C] text-[9px] font-black px-1.5 py-0.5 rounded-md">SELECTED</span>
+        <div class="relative mx-auto rounded-[7px] overflow-hidden" style="width:84px;height:47px;background:#0B192C;border:3px solid #FFD700;">
+          <span class="absolute top-[2px] left-[2px] right-[2px] h-1 rounded-sm bg-[#FFD700]"></span>
+          <span class="absolute top-[9px] left-[3px] h-1.5 rounded bg-[#FFFFFF]" style="width:44%;opacity:.84"></span>
+          <span class="absolute bottom-[3px] left-[3px] h-1 rounded bg-[#FFF3B0]" style="width:28%"></span>
+        </div>
+        <p class="mt-3 font-black text-base" style="color:#FFFFFF;font-family:'Inter', sans-serif">Sermon Classic</p>
+        <p class="text-xs text-gray-400 mt-0.5">Gold &amp; navy · bold sans-serif</p>
+      </div>
+      <div data-template="Elegant Heritage" data-selected="false" onclick="app.selectTemplate('Elegant Heritage')" class="template-card relative rounded-2xl p-4 text-center cursor-pointer hover:scale-[1.015]" style="border:2px solid #9B2A2E;background:linear-gradient(180deg,#F6EFE6,#E8D9BF);">
+        <span class="sel-badge absolute top-2 right-2 bg-amber-400 text-[#0B192C] text-[9px] font-black px-1.5 py-0.5 rounded-md">SELECTED</span>
+        <div class="relative mx-auto rounded-[7px] overflow-hidden" style="width:84px;height:47px;background:#F6EFE6;border:3px solid #9B2A2E;">
+          <span class="absolute top-[2px] left-[2px] right-[2px] h-1 rounded-sm bg-[#9B2A2E]"></span>
+          <span class="absolute top-[9px] left-[3px] h-1.5 rounded bg-[#2B2118]" style="width:44%;opacity:.84"></span>
+          <span class="absolute bottom-[3px] left-[3px] h-1 rounded bg-[#C05A3B]" style="width:28%"></span>
+        </div>
+        <p class="mt-3 font-black text-base" style="color:#2B2118;font-family:'Georgia', serif">Elegant Heritage</p>
+        <p class="text-xs text-gray-400 mt-0.5">Ivory &amp; burgundy · elegant serif</p>
+      </div>
+      <div data-template="Midnight Aurora" data-selected="false" onclick="app.selectTemplate('Midnight Aurora')" class="template-card relative rounded-2xl p-4 text-center cursor-pointer hover:scale-[1.015]" style="border:2px solid #22D3EE;background:linear-gradient(180deg,#0D1117,#161B22);">
+        <span class="sel-badge absolute top-2 right-2 bg-amber-400 text-[#0B192C] text-[9px] font-black px-1.5 py-0.5 rounded-md">SELECTED</span>
+        <div class="relative mx-auto rounded-[7px] overflow-hidden" style="width:84px;height:47px;background:#0D1117;border:3px solid #22D3EE;">
+          <span class="absolute top-[2px] left-[2px] right-[2px] h-1 rounded-sm bg-[#22D3EE]"></span>
+          <span class="absolute top-[9px] left-[3px] h-1.5 rounded bg-[#FFFFFF]" style="width:44%;opacity:.84"></span>
+          <span class="absolute bottom-[3px] left-[3px] h-1 rounded bg-[#A78BFA]" style="width:28%"></span>
+        </div>
+        <p class="mt-3 font-black text-base" style="color:#FFFFFF;font-family:'Montserrat', sans-serif">Midnight Aurora</p>
+        <p class="text-xs text-gray-400 mt-0.5">Charcoal &amp; neon cyan · modern sans-serif</p>
+      </div>
+      <div data-template="Forest Chapel" data-selected="false" onclick="app.selectTemplate('Forest Chapel')" class="template-card relative rounded-2xl p-4 text-center cursor-pointer hover:scale-[1.015]" style="border:2px solid #D9B36C;background:linear-gradient(180deg,#0E2A1E,#06140E);">
+        <span class="sel-badge absolute top-2 right-2 bg-amber-400 text-[#0B192C] text-[9px] font-black px-1.5 py-0.5 rounded-md">SELECTED</span>
+        <div class="relative mx-auto rounded-[7px] overflow-hidden" style="width:84px;height:47px;background:#0E2A1E;border:3px solid #D9B36C;">
+          <span class="absolute top-[2px] left-[2px] right-[2px] h-1 rounded-sm bg-[#D9B36C]"></span>
+          <span class="absolute top-[9px] left-[3px] h-1.5 rounded bg-[#F6F1E3]" style="width:44%;opacity:.84"></span>
+          <span class="absolute bottom-[3px] left-[3px] h-1 rounded bg-[#F4E4BC]" style="width:28%"></span>
+        </div>
+        <p class="mt-3 font-black text-base" style="color:#F6F1E3;font-family:'Cambria', serif">Forest Chapel</p>
+        <p class="text-xs text-gray-400 mt-0.5">Pine green &amp; gold · elegant serif</p>
+      </div>
+      <div data-template="Lilac Grace" data-selected="false" onclick="app.selectTemplate('Lilac Grace')" class="template-card relative rounded-2xl p-4 text-center cursor-pointer hover:scale-[1.015]" style="border:2px solid #8B5CF6;background:linear-gradient(180deg,#F3EEFC,#E8DDF9);">
+        <span class="sel-badge absolute top-2 right-2 bg-amber-400 text-[#0B192C] text-[9px] font-black px-1.5 py-0.5 rounded-md">SELECTED</span>
+        <div class="relative mx-auto rounded-[7px] overflow-hidden" style="width:84px;height:47px;background:#F3EEFC;border:3px solid #8B5CF6;">
+          <span class="absolute top-[2px] left-[2px] right-[2px] h-1 rounded-sm bg-[#7C3AED]"></span>
+          <span class="absolute top-[9px] left-[3px] h-1.5 rounded bg-[#2E1065]" style="width:44%;opacity:.84"></span>
+          <span class="absolute bottom-[3px] left-[3px] h-1 rounded bg-[#C4B5FD]" style="width:28%"></span>
+          <span class="absolute top-0 left-0 w-[3px] h-[3px] rounded-full bg-[#C4B5FD]"></span>
+          <span class="absolute top-0 right-0 w-[3px] h-[3px] rounded-full bg-[#C4B5FD]"></span>
+          <span class="absolute bottom-0 left-0 w-[3px] h-[3px] rounded-full bg-[#C4B5FD]"></span>
+          <span class="absolute bottom-0 right-0 w-[3px] h-[3px] rounded-full bg-[#C4B5FD]"></span>
+        </div>
+        <p class="mt-3 font-black text-base" style="color:#2E1065;font-family:'Palatino', serif">Lilac Grace</p>
+        <p class="text-xs text-gray-400 mt-0.5">Soft lavender &amp; violet · graceful serif</p>
+      </div>
+      <div data-template="Rose Atelier" data-selected="false" onclick="app.selectTemplate('Rose Atelier')" class="template-card relative rounded-2xl p-4 text-center cursor-pointer hover:scale-[1.015]" style="border:2px solid #A64A52;background:linear-gradient(180deg,#FBF5EF,#F2E7DC);">
+        <span class="sel-badge absolute top-2 right-2 bg-amber-400 text-[#0B192C] text-[9px] font-black px-1.5 py-0.5 rounded-md">SELECTED</span>
+        <div class="relative mx-auto rounded-[7px] overflow-hidden" style="width:84px;height:47px;background:#FBF5EF;border:3px solid #A64A52;">
+          <span class="absolute top-[2px] left-[2px] right-[2px] h-1 rounded-sm bg-[#A64A52]"></span>
+          <span class="absolute top-[9px] left-[3px] h-1.5 rounded bg-[#3A2328]" style="width:44%;opacity:.84"></span>
+          <span class="absolute bottom-[3px] left-[3px] h-1 rounded bg-[#E2A9B0]" style="width:28%"></span>
+        </div>
+        <p class="mt-3 font-black text-base" style="color:#3A2328;font-family:'Georgia', serif">Rose Atelier</p>
+        <p class="text-xs text-gray-400 mt-0.5">Ivory &amp; rose · editorial serif</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENT BUILDER -->
+  <section id="view-step-3" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 hidden">
+
+    <!-- Selected Template Bar -->
+    <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-800">
+      <div class="flex items-center gap-3">
+        <span class="text-xs uppercase tracking-widest text-amber-500">Template</span>
+        <span id="selected-template-name" class="text-xl font-bold text-white">Sermon Classic</span>
+      </div>
+      <button onclick="app.openModal('template-modal')" class="text-xs text-amber-400 hover:text-amber-300">Change…</button>
+    </div>
+
+    <!-- Add Slide Bar -->
+    <div class="flex flex-wrap items-center gap-3 mb-6">
+      <span class="text-xs uppercase tracking-widest text-gray-500">Add Slide</span>
+      <button onclick="app.openModal('title-modal')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-[#0B192C] font-black text-sm flex items-center gap-2 shadow-lg shadow-amber-500/25 hover:brightness-110"><i class="fa-solid fa-heading"></i> Title</button>
+      <button onclick="app.openModal('point-modal')" class="px-4 py-2 rounded-xl border border-gray-700 text-white text-sm flex items-center gap-2 hover:bg-amber-500/20 hover:border-amber-400/55 transition"><i class="fa-solid fa-list-ul"></i> Point</button>
+      <button onclick="app.openModal('verse-modal')" class="px-4 py-2 rounded-xl border border-gray-700 text-white text-sm flex items-center gap-2 hover:bg-amber-500/20 hover:border-amber-400/55 transition"><i class="fa-solid fa-book-open"></i> Verse</button>
+      <button onclick="app.openModal('message-modal')" class="px-4 py-2 rounded-xl border border-gray-700 text-white text-sm flex items-center gap-2 hover:bg-amber-500/20 hover:border-amber-400/55 transition"><i class="fa-solid fa-message"></i> Message</button>
+      <span id="slide-count-badge" class="ml-auto text-xs text-gray-500">0 slides</span>
+    </div>
+
+    <div class="grid xl:grid-cols-3 gap-8">
+
+      <!-- Slide Queue -->
+      <div class="xl:col-span-1">
+        <h3 class="text-lg font-bold text-white mb-3">Slide Queue</h3>
+        <div id="slide-queue" class="space-y-2">
+          <p class="text-xs text-gray-500 italic">No slides added yet. Click a button above to add your first slide.</p>
+        </div>
+      </div>
+
+      <!-- Live Preview -->
+      <div class="xl:col-span-2 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-bold text-white">Live Preview</h3>
+          <span id="preview-label" class="text-xs text-gray-500"></span>
+        </div>
+        <div id="slide-preview" class="w-full max-w-3xl mx-auto">
+          <div class="aspect-video flex items-center justify-center border-2 border-dashed border-gray-700 rounded-2xl">
+            <p class="text-xs text-gray-500 italic">Select a slide in the queue to preview it.</p>
+          </div>
+        </div>
+        <div class="flex justify-center gap-3 pt-2">
+          <button onclick="app.prevPreview()" class="px-3 py-1.5 rounded-lg bg-gray-800 text-white text-sm"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+          <button onclick="app.enlargePreview()" class="px-4 py-2 rounded-xl bg-amber-500 text-[#0B192C] font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-expand"></i> Enlarge</button>
+          <button onclick="app.nextPreview()" class="px-3 py-1.5 rounded-lg bg-gray-800 text-white text-sm">Next <i class="fa-solid fa-chevron-right"></i> </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Enlarge Modal -->
+  <div id="preview-modal" class="hidden fixed inset-0 bg-black/80 z-50 items-center justify-center p-4">
+    <div class="relative max-w-5xl w-full">
+      <button onclick="app.closeEnlargedPreview()" class="absolute -top-12 right-0 text-white hover:text-amber-400 transition"><i class="fa-solid fa-x text-2xl"></i></button>
+      <div id="enlarged-label" class="text-center text-sm text-gray-300 mb-4">Slide 1 of 1</div>
+      <div id="enlarged-slide" class="w-full"></div>
+      <div class="flex justify-center gap-4 mt-6">
+        <button onclick="app.prevPreview()" class="px-4 py-2 rounded-xl bg-gray-800 text-white font-semibold"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+        <button onclick="app.nextPreview()" class="px-4 py-2 rounded-xl bg-gray-800 text-white font-semibold">Next <i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+      <!-- Toast Area -->
+  <div id="toast-area" class="fixed bottom-6 right-6 z-40 space-y-3"></div>
+
+  <!-- Title Modal -->
+  <div id="title-modal" class="hidden fixed inset-0 bg-black/70 z-50 items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-xl w-full mx-2 p-0 overflow-hidden shadow-2xl">
+      <div class="px-6 py-4 border-b border-gray-800/60 flex justify-between items-center"><h3 id="title-modal-heading" class="text-xl font-bold text-white">Add Title Slide</h3><button onclick="app.closeModal('title-modal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-x"></i></button></div>
+      <div class="p-6 space-y-4">
+        <div><label class="block text-sm font-medium text-amber-400 mb-1">Sermon Title</label><input id="input-title" type="text" placeholder="Walking in unshakable hope" class="w-full bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50" /></div>
+        <div><label class="block text-sm font-medium text-amber-400 mb-1">Highlight Word(s) (Optional)</label><div id="title-highlight-fields" class="space-y-2"></div><button onclick="app.addHighlightRow('title-highlight-fields')" type="button" class="mt-2 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 font-bold text-sm hover:bg-amber-500/30">+ Add Highlight</button><p class="mt-1 text-xs text-gray-500">Add one phrase per field to highlight it. Leave all blank to show the title plainly.</p></div>
+        <div><label class="block text-sm font-medium text-white mb-1">Scripture Reference (Optional)</label><input id="input-verse" type="text" placeholder="Romans 8:28-39" class="w-full bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50" /></div>
+        <div><label class="block text-sm font-medium text-amber-400 mb-1">FOOTER / WELCOME TEXT (OPTIONAL)</label><input id="input-title-footer" type="text" placeholder="e.g. Welcome to Worship" class="w-full bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50" /></div>
+        <div class="pt-4"><button id="title-modal-submit" onclick="app.addTitleSlide()" class="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-[#0B192C] font-black shadow-lg shadow-amber-500/30 hover:brightness-110">Add Title Slide</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Point Modal -->
+  <div id="point-modal" class="hidden fixed inset-0 bg-black/70 z-50 items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-xl w-full mx-2 p-0 shadow-2xl">
+      <div class="px-6 py-4 border-b border-gray-800/60 flex justify-between items-center"><h3 id="point-modal-heading" class="text-xl font-bold text-white">Add Point Slide</h3><button onclick="app.closeModal('point-modal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-x"></i></button></div>
+      <div class="p-6 space-y-4">
+        <div><label class="block text-sm font-medium text-amber-400 mb-1">Point Badge</label><input id="input-point-badge" type="text" placeholder="1" class="w-full bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50" /></div>
+        <div><label class="block text-sm font-medium text-amber-400 mb-1">Point Statement</label><input id="input-point-title" type="text" placeholder="What does unshakable hope look like?" class="w-full bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50" /></div>
+        <div><label class="block text-sm font-medium text-amber-400 mb-1">Highlight Word(s) (Optional)</label><div id="highlight-fields" class="space-y-2"></div><button onclick="app.addHighlightRow('highlight-fields')" type="button" class="mt-2 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 font-bold text-sm hover:bg-amber-500/30">+ Add Highlight</button><p class="mt-1 text-xs text-gray-500">Add one phrase per field to highlight it. Leave all blank to show the point with no highlights.</p></div>
+        <div><label class="block text-sm font-medium text-amber-400 mb-1">Description (Optional)</label><input id="input-point-desc" type="text" placeholder="Because..." class="w-full bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50" /></div>
+        <div class="pt-4"><button id="point-modal-submit" onclick="app.addPointSlide()" class="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-[#0B192C] font-black shadow-lg shadow-amber-500/30 hover:brightness-110">Add Point Slide</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verse Modal -->
+  <div id="verse-modal" class="hidden fixed inset-0 bg-black/70 z-50 items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-xl w-full mx-2 p-0 shadow-2xl">
+      <div class="px-6 py-4 border-b border-gray-800/60 flex justify-between items-center"><h3 id="verse-modal-heading" class="text-xl font-bold text-white">Add Verse Slide</h3><button onclick="app.closeModal('verse-modal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-x"></i></button></div>
+      <div class="p-6 space-y-4">
+        <div><label class="block text-sm font-medium text-amber-400 mb-1">Reference</label><input id="input-verse-ref" type="text" placeholder="Romans 8:28" class="w-full bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50" /></div>
+        <div><label class="block text-sm font-medium text-amber-400 mb-1">Verse Text</label><textarea id="input-verse-body" rows="4" placeholder="And we know that all things work together for good..." class="w-full bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50"></textarea></div>
+        <div><label class="block text-sm font-medium text-amber-400 mb-1">Version (Optional)</label><input id="input-verse-version" type="text" placeholder="NIV" class="w-full bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50" /></div>
+        <div class="pt-4"><button id="verse-modal-submit" onclick="app.addVerseSlide()" class="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-[#0B192C] font-black shadow-lg shadow-amber-500/30 hover:brightness-110">Add Verse Slide</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message Modal -->
+  <div id="message-modal" class="hidden fixed inset-0 bg-black/70 z-50 items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-xl w-full mx-2 p-0 shadow-2xl">
+      <div class="px-6 py-4 border-b border-gray-800/60 flex justify-between items-center"><h3 id="message-modal-heading" class="text-xl font-bold text-white">Add Message Slide</h3><button onclick="app.closeModal('message-modal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-x"></i></button></div>
+      <div class="p-6 space-y-4">
+        <div><label class="block text-sm font-medium text-amber-400 mb-1">Message Text</label><textarea id="input-message-text" rows="4" placeholder="Type your message here..." class="w-full bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50"></textarea></div>
+        <div><label class="block text-sm font-medium text-amber-400 mb-1">Highlight Word(s) (Optional)</label><div id="message-highlight-fields" class="space-y-2"></div><button onclick="app.addHighlightRow('message-highlight-fields')" type="button" class="mt-2 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 font-bold text-sm hover:bg-amber-500/30">+ Add Highlight</button><p class="mt-1 text-xs text-gray-500">Add one phrase per field. Leave all blank to show the message plainly.</p></div>
+        <div><label class="block text-sm font-medium text-amber-400 mb-1">Reference (Optional)</label><input id="input-message-ref" type="text" placeholder="e.g. Part 3: Walking in Hope" class="w-full bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50" /></div>
+        <div><label class="block text-sm font-medium text-amber-400 mb-1">Footer (Optional)</label><input id="input-message-footer" type="text" placeholder="e.g. Join us next week" class="w-full bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50" /></div>
+        <div class="pt-4"><button id="message-modal-submit" onclick="app.addMessageSlide()" class="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-[#0B192C] font-black shadow-lg shadow-amber-500/30 hover:brightness-110">Add Message Slide</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Template Change Modal -->
+  <div id="template-modal" class="hidden fixed inset-0 bg-black/70 z-50 items-center justify-center p-4">
+    <div class="bg-[#0B192C] border border-amber-500/30 rounded-2xl max-w-xl w-full mx-2 p-6 shadow-2xl">
+      <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-white">Select Template</h3><button onclick="app.closeModal('template-modal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-x"></i></button></div>
+      <div class="space-y-3">
+        <div data-template="Sermon Classic" data-selected="true" onclick="app.selectTemplate('Sermon Classic')" class="template-card relative flex items-center gap-2 p-2 rounded-lg text-left cursor-pointer hover:bg-amber-500/10 transition" style="border:2px solid #FFD700;background:linear-gradient(180deg,#0B192C,#050C16);">
+          <span class="sel-badge absolute top-1 right-1 bg-amber-400 text-[#0B192C] text-[9px] font-black px-1 py-0.5 rounded-md">SELECTED</span>
+          <div class="relative" style="width:52px;height:29px;background:#0B192C;border:2px solid #FFD700;border-radius:5px;">
+            <span class="absolute top-[1px] left-[1px] right-[1px] h-0.5 rounded-sm bg-[#FFD700]"></span>
+            <span class="absolute top-[6px] left-[1px] h-1 rounded bg-[#FFFFFF]" style="width:36%"></span>
+            <span class="absolute bottom-[1px] left-[1px] h-0.5 rounded bg-[#FFF3B0]" style="width:22%"></span>
+          </div>
+          <span class="font-black text-sm" style="color:#FFFFFF;font-family:'Inter', sans-serif">Sermon Classic</span>
+        </div>
+        <div data-template="Elegant Heritage" data-selected="false" onclick="app.selectTemplate('Elegant Heritage')" class="template-card relative flex items-center gap-2 p-2 rounded-lg text-left cursor-pointer hover:bg-amber-500/10 transition" style="border:2px solid #9B2A2E;background:linear-gradient(180deg,#F6EFE6,#E8D9BF);">
+          <span class="sel-badge absolute top-1 right-1 bg-amber-400 text-[#0B192C] text-[9px] font-black px-1 py-0.5 rounded-md">SELECTED</span>
+          <div class="relative" style="width:52px;height:29px;background:#F6EFE6;border:2px solid #9B2A2E;border-radius:5px;">
+            <span class="absolute top-[1px] left-[1px] right-[1px] h-0.5 rounded-sm bg-[#9B2A2E]"></span>
+            <span class="absolute top-[6px] left-[1px] h-1 rounded bg-[#2B2118]" style="width:36%"></span>
+            <span class="absolute bottom-[1px] left-[1px] h-0.5 rounded bg-[#C05A3B]" style="width:22%"></span>
+          </div>
+          <span class="font-black text-sm" style="color:#2B2118;font-family:'Georgia', serif">Elegant Heritage</span>
+        </div>
+        <div data-template="Midnight Aurora" data-selected="false" onclick="app.selectTemplate('Midnight Aurora')" class="template-card relative flex items-center gap-2 p-2 rounded-lg text-left cursor-pointer hover:bg-amber-500/10 transition" style="border:2px solid #22D3EE;background:linear-gradient(180deg,#0D1117,#161B22);">
+          <span class="sel-badge absolute top-1 right-1 bg-amber-400 text-[#0B192C] text-[9px] font-black px-1 py-0.5 rounded-md">SELECTED</span>
+          <div class="relative" style="width:52px;height:29px;background:#0D1117;border:2px solid #22D3EE;border-radius:5px;">
+            <span class="absolute top-[1px] left-[1px] right-[1px] h-0.5 rounded-sm bg-[#22D3EE]"></span>
+            <span class="absolute top-[6px] left-[1px] h-1 rounded bg-[#FFFFFF]" style="width:36%"></span>
+            <span class="absolute bottom-[1px] left-[1px] h-0.5 rounded bg-[#A78BFA]" style="width:22%"></span>
+          </div>
+          <span class="font-black text-sm" style="color:#FFFFFF;font-family:'Montserrat', sans-serif">Midnight Aurora</span>
+        </div>
+        <div data-template="Forest Chapel" data-selected="false" onclick="app.selectTemplate('Forest Chapel')" class="template-card relative flex items-center gap-2 p-2 rounded-lg text-left cursor-pointer hover:bg-amber-500/10 transition" style="border:2px solid #D9B36C;background:linear-gradient(180deg,#0E2A1E,#06140E);">
+          <span class="sel-badge absolute top-1 right-1 bg-amber-400 text-[#0B192C] text-[9px] font-black px-1 py-0.5 rounded-md">SELECTED</span>
+          <div class="relative" style="width:52px;height:29px;background:#0E2A1E;border:2px solid #D9B36C;border-radius:5px;">
+            <span class="absolute top-[1px] left-[1px] right-[1px] h-0.5 rounded-sm bg-[#D9B36C]"></span>
+            <span class="absolute top-[6px] left-[1px] h-1 rounded bg-[#F6F1E3]" style="width:36%"></span>
+            <span class="absolute bottom-[1px] left-[1px] h-0.5 rounded bg-[#F4E4BC]" style="width:22%"></span>
+          </div>
+          <span class="font-black text-sm" style="color:#F6F1E3;font-family:'Cambria', serif">Forest Chapel</span>
+        </div>
+        <div data-template="Lilac Grace" data-selected="false" onclick="app.selectTemplate('Lilac Grace')" class="template-card relative flex items-center gap-2 p-2 rounded-lg text-left cursor-pointer hover:bg-amber-500/10 transition" style="border:2px solid #8B5CF6;background:linear-gradient(180deg,#F3EEFC,#E8DDF9);">
+          <span class="sel-badge absolute top-1 right-1 bg-amber-400 text-[#0B192C] text-[9px] font-black px-1 py-0.5 rounded-md">SELECTED</span>
+          <div class="relative" style="width:52px;height:29px;background:#F3EEFC;border:2px solid #8B5CF6;border-radius:5px;">
+            <span class="absolute top-[1px] left-[1px] right-[1px] h-0.5 rounded-sm bg-[#7C3AED]"></span>
+            <span class="absolute top-[6px] left-[1px] h-1 rounded bg-[#2E1065]" style="width:36%"></span>
+            <span class="absolute bottom-[1px] left-[1px] h-0.5 rounded bg-[#C4B5FD]" style="width:22%"></span>
+          </div>
+          <span class="font-black text-sm" style="color:#2E1065;font-family:'Palatino', serif">Lilac Grace</span>
+        </div>
+        <div data-template="Rose Atelier" data-selected="false" onclick="app.selectTemplate('Rose Atelier')" class="template-card relative flex items-center gap-2 p-2 rounded-lg text-left cursor-pointer hover:bg-amber-500/10 transition" style="border:2px solid #A64A52;background:linear-gradient(180deg,#FBF5EF,#F2E7DC);">
+          <span class="sel-badge absolute top-1 right-1 bg-amber-400 text-[#0B192C] text-[9px] font-black px-1 py-0.5 rounded-md">SELECTED</span>
+          <div class="relative" style="width:52px;height:29px;background:#FBF5EF;border:2px solid #A64A52;border-radius:5px;">
+            <span class="absolute top-[1px] left-[1px] right-[1px] h-0.5 rounded-sm bg-[#A64A52]"></span>
+            <span class="absolute top-[6px] left-[1px] h-1 rounded bg-[#3A2328]" style="width:36%"></span>
+            <span class="absolute bottom-[1px] left-[1px] h-0.5 rounded bg-[#E2A9B0]" style="width:22%"></span>
+          </div>
+          <span class="font-black text-sm" style="color:#3A2328;font-family:'Georgia', serif">Rose Atelier</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>app.init(); app.goToStep(1);</script>
+</body>
+</html>
+
+
+
+

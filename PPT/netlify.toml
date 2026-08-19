@@ -1,0 +1,44 @@
+# ---------------------------------------------------------------
+# SlideCraft Studio — Netlify configuration
+#
+# This is a zero-build static app: Tailwind CSS, PptxGenJS,
+# html2canvas and jsPDF are all delivered via CDN, so there is
+# no Node build step. Netlify simply serves the repository root.
+#
+#   1. Drag & drop this whole folder onto Netlify, OR
+#   2. Push it to a Git repo connected to Netlify.
+#
+# The `publish` directory below is the repo root (".").
+# ---------------------------------------------------------------
+[build]
+  publish = "."
+  command = ""
+
+# Pretty (SPA-friendly) URLs: serve /index.html for any unknown
+# route so direct links / refreshed routes still resolve to the app.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Security headers applied to every response.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-XSS-Protection = "1; mode=block"
+
+# Long cache for the app shell JS (add a build hash / version query
+# to index.html when you change it for instant cache-busting).
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536099, immutable"
+
+# Snapshots / templates — cache a day.
+[[headers]]
+  for = "/components/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
